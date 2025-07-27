@@ -1480,6 +1480,9 @@
                     
                     // 학습 이력 저장 (학습 현황 반영용)
                     this.saveLearningHistory(isCorrect);
+                    
+                    // 학습진도 현황과 기본학습 현황 즉시 업데이트
+                    ACIUApp.ui.updateBasicLearningStats();
                 },
 
                 // 다음 문제 (9단계) - CSV 데이터 사용
@@ -2413,6 +2416,23 @@
             }
             
             resultArea.classList.remove('hidden');
+            
+            // 학습 이력 저장 (학습 현황 반영용)
+            const learningData = {
+                qcode: currentQuestion.QCODE,
+                timestamp: new Date().toISOString(),
+                isCorrect: isCorrect,
+                layer1: currentQuestion.LAYER1,
+                layer2: currentQuestion.LAYER2,
+                mode: 'mid-category'
+            };
+
+            let history = JSON.parse(localStorage.getItem('aciu_learning_history')) || [];
+            history.push(learningData);
+            localStorage.setItem('aciu_learning_history', JSON.stringify(history));
+            
+            // 학습진도 현황과 기본학습 현황 즉시 업데이트
+            ACIUApp.ui.updateBasicLearningStats();
         };
 
         // 중분류 다음 문제
