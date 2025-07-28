@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AICU QUIZ 앱 v3.7-2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <style>
+        body { font-family: 'Noto Sans KR', sans-serif; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="bg-white shadow-lg">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <h1 class="text-xl font-bold text-blue-700">AICU QUIZ 앱 v3.7-2</h1>
+                    <span class="text-sm text-gray-600" id="current-mode">모드 선택</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-sm text-gray-600">
+                        <span id="user-info">사용자: 조대표님</span> | 
+                        <span id="exam-dday">D-90일</span>
+                    </div>
+                    <div class="text-sm text-gray-600" id="current-time"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-6 max-w-6xl">
+        <!-- 메인 대시보드 -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <div class="text-center">
+                <p class="text-lg text-gray-700 italic" id="quote-of-day">
+                    "학습은 가장 좋은 투자입니다."
+                </p>
+            </div>
+        </div>
+
+        <!-- 보유 문제수 현황 -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">보유 문제수 현황</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-blue-600" id="ins-questions">0</div>
+                    <div class="text-sm text-gray-600">인스교재</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-green-600" id="exam-questions">0</div>
+                    <div class="text-sm text-gray-600">보험중개사시험</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-purple-600" id="total-questions">0</div>
+                    <div class="text-sm text-gray-600">합계</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 학습 진도 현황 -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">학습 진도 현황</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-blue-600" id="completed-questions">0</div>
+                    <div class="text-sm text-gray-600">완료한 문제</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-green-600" id="overall-progress-rate">0%</div>
+                    <div class="text-sm text-gray-600">전체 진도율</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-orange-600" id="daily-progress-rate">0%</div>
+                    <div class="text-sm text-gray-600">오늘 진도율</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 학습 모드 선택 -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">학습 모드를 선택해주세요</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+                <button onclick="ACIUApp.learning.startMode('basic')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-6 rounded-lg">
+                    기본 학습
+                </button>
+                <button onclick="ACIUApp.learning.startMode('layer1')" class="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-6 rounded-lg">
+                    대분류 학습
+                </button>
+                <button onclick="ACIUApp.learning.startMode('layer2')" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-4 px-6 rounded-lg">
+                    중분류 학습
+                </button>
+                <button onclick="ACIUApp.learning.startMode('choice')" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-4 px-6 rounded-lg">
+                    선택형 학습
+                </button>
+                <button onclick="ACIUApp.learning.startMode('truefalse')" class="bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-6 rounded-lg">
+                    진위형 학습
+                </button>
+                <button onclick="ACIUApp.learning.startMode('mock')" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-4 px-6 rounded-lg">
+                    모의고사
+                </button>
+            </div>
+        </div>
+
+        <!-- 대분류 학습 화면 -->
+        <div id="large-category-learning-screen" class="hidden">
+            <div class="bg-white rounded-lg shadow-lg p-4 mb-6">
+                <div class="flex justify-between items-center">
+                    <button onclick="ACIUApp.ui.goToHome()" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg">
+                        🏠 홈으로
+                    </button>
+                    <h2 class="text-xl font-semibold text-gray-800">대분류 학습</h2>
+                    <div class="text-sm text-gray-600">
+                        선택된 대분류: <span id="selected-category">없음</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 보유 문제 현황 -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">보유 문제 현황</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="text-center p-4 bg-blue-50 rounded-lg">
+                        <div class="text-lg font-semibold text-blue-800">인스교재</div>
+                        <div class="text-sm text-gray-600">선택형 300개, 진위형 400개</div>
+                    </div>
+                    <div class="text-center p-4 bg-green-50 rounded-lg">
+                        <div class="text-lg font-semibold text-green-800">보험중개사시험</div>
+                        <div class="text-sm text-gray-600">진위형 200개, 선택형 479개</div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-purple-600">총계: 1,379개</div>
+                </div>
+            </div>
+
+            <!-- 학습 진도 현황 -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">학습 진도 현황</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="category-progress">
+                    <div class="text-center p-4 bg-blue-50 rounded-lg">
+                        <div class="text-lg font-semibold text-blue-800">재산보험</div>
+                        <div class="text-sm text-gray-600">45 / 300 (15%)</div>
+                        <div class="text-xs text-gray-500">미학습: 255</div>
+                    </div>
+                    <div class="text-center p-4 bg-green-50 rounded-lg">
+                        <div class="text-lg font-semibold text-green-800">특종보험</div>
+                        <div class="text-sm text-gray-600">32 / 250 (13%)</div>
+                        <div class="text-xs text-gray-500">미학습: 218</div>
+                    </div>
+                    <div class="text-center p-4 bg-purple-50 rounded-lg">
+                        <div class="text-lg font-semibold text-purple-800">배상책임보험</div>
+                        <div class="text-sm text-gray-600">28 / 200 (14%)</div>
+                        <div class="text-xs text-gray-500">미학습: 172</div>
+                    </div>
+                    <div class="text-center p-4 bg-yellow-50 rounded-lg">
+                        <div class="text-lg font-semibold text-yellow-800">해상보험</div>
+                        <div class="text-sm text-gray-600">15 / 150 (10%)</div>
+                        <div class="text-xs text-gray-500">미학습: 135</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 대분류 선택 -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">대분류 선택</h2>
+                
+                <!-- 학습 모드 선택 -->
+                <div class="mb-6 p-4 bg-blue-50 rounded-lg">
+                    <h3 class="text-lg font-semibold text-blue-800 mb-3">학습 모드 선택</h3>
+                    <div class="flex space-x-4">
+                        <label class="flex items-center">
+                            <input type="radio" name="learning-mode" value="continue" checked class="mr-2">
+                            <span class="text-blue-700 font-medium">🔄 이어풀기 (기본)</span>
+                            <span class="text-sm text-gray-600 ml-2">- 마지막 완료 지점부터 시작</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="learning-mode" value="restart" class="mr-2">
+                            <span class="text-orange-700 font-medium">🔄 처음부터 풀기</span>
+                            <span class="text-sm text-gray-600 ml-2">- 모든 진행상황 초기화</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- 기존 대분류 버튼들 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6" id="category-buttons">
+                    <button onclick="ACIUApp.learning.selectCategory('재산보험')" class="category-btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-6 rounded-lg transition-all" data-category="재산보험">
+                        재산보험<br><span class="text-sm">(300문제)</span>
+                    </button>
+                    <button onclick="ACIUApp.learning.selectCategory('특종보험')" class="category-btn bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-6 rounded-lg transition-all" data-category="특종보험">
+                        특종보험<br><span class="text-sm">(250문제)</span>
+                    </button>
+                    <button onclick="ACIUApp.learning.selectCategory('배상책임보험')" class="category-btn bg-purple-500 hover:bg-purple-600 text-white font-bold py-4 px-6 rounded-lg transition-all" data-category="배상책임보험">
+                        배상책임보험<br><span class="text-sm">(200문제)</span>
+                    </button>
+                    <button onclick="ACIUApp.learning.selectCategory('해상보험')" class="category-btn bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-4 px-6 rounded-lg transition-all" data-category="해상보험">
+                        해상보험<br><span class="text-sm">(150문제)</span>
+                    </button>
+                </div>
+
+                <!-- 독립 모듈 테스트 섹션 -->
+                <div class="mt-8 p-6 bg-gray-50 rounded-lg">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">📚 독립 모듈 테스트</h3>
+                    <p class="text-sm text-gray-600 mb-4">각 보험 종류별로 독립적인 학습 모듈을 테스트할 수 있습니다.</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <a href="대분류학습_재산보험_테스트.html" target="_blank" class="block">
+                            <div class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-6 rounded-lg transition-all text-center">
+                                🏠 재산보험 모듈<br>
+                                <span class="text-sm">독립 테스트</span>
+                            </div>
+                        </a>
+                        <a href="대분류학습_특종보험_테스트.html" target="_blank" class="block">
+                            <div class="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-6 rounded-lg transition-all text-center">
+                                🏠 특종보험 모듈<br>
+                                <span class="text-sm">독립 테스트</span>
+                            </div>
+                        </a>
+                        <a href="대분류학습_배상책임보험_테스트.html" target="_blank" class="block">
+                            <div class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-4 px-6 rounded-lg transition-all text-center">
+                                🏠 배상책임보험 모듈<br>
+                                <span class="text-sm">독립 테스트</span>
+                            </div>
+                        </a>
+                        <a href="대분류학습_해상보험_테스트.html" target="_blank" class="block">
+                            <div class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-4 px-6 rounded-lg transition-all text-center">
+                                🏠 해상보험 모듈<br>
+                                <span class="text-sm">독립 테스트</span>
+                            </div>
+                        </a>
+                    </div>
+                    
+                    <div class="mt-4 p-3 bg-blue-100 rounded-lg">
+                        <p class="text-sm text-blue-800">
+                            💡 <strong>사용법:</strong> 각 모듈 버튼을 클릭하면 새 탭에서 해당 보험 종류의 독립적인 학습 환경이 열립니다. 
+                            각 모듈은 이어풀기/처음부터 풀기 기능과 실시간 통계를 제공합니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 통계 데이터 불러오기 버튼 -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <div class="text-center">
+                <button onclick="ACIUApp.ui.loadStatisticsData()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg text-lg">
+                    📊 통계 데이터 불러오기
+                </button>
+                <p class="text-sm text-gray-600 mt-2">버튼을 클릭하면 현재상태 총괄이 표시됩니다</p>
+            </div>
+        </div>
+
+        <!-- 통계 섹션 -->
+        <div id="statistics-section" class="hidden">
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">현재상태 총괄</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">과목별 점수</h3>
+                        <div class="space-y-2" id="subject-cards">
+                        </div>
+                    </div>
+                    
+                    <div class="bg-blue-50 rounded-lg p-4">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">전체 요약</h3>
+                        <div class="space-y-3" id="summary-cards">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ACIUApp 네임스페이스
+        const ACIUApp = {
+            // UI 관리
+            ui: {
+                // 초기화
+                init() {
+                    this.updateCurrentTime();
+                    this.updateQuote();
+                    this.updateDdayCount();
+                },
+
+                // 현재 시간 업데이트
+                updateCurrentTime() {
+                    const now = new Date();
+                    const timeString = now.toLocaleString('ko-KR', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        weekday: 'long',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: true
+                    });
+                    document.getElementById('current-time').textContent = timeString;
+                },
+
+                // D-Day 업데이트
+                updateDdayCount() {
+                    const examDate = new Date('2024-12-31');
+                    const today = new Date();
+                    const diffTime = examDate.getTime() - today.getTime();
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    
+                    document.getElementById('exam-dday').textContent = `D-${Math.max(0, diffDays)}일`;
+                },
+
+                // 명언 업데이트
+                updateQuote() {
+                    const quotes = [
+                        "학습은 가장 좋은 투자입니다.",
+                        "꾸준함이 최고의 재능입니다.",
+                        "오늘의 노력이 내일의 성공을 만듭니다.",
+                        "실패는 성공의 어머니입니다.",
+                        "작은 진전도 큰 성취의 시작입니다.",
+                        "끝까지 가는 자가 이긴다.",
+                        "자신을 믿어라, 당신은 할 수 있다.",
+                        "시간은 가장 귀중한 자산입니다.",
+                        "목표를 향해 한 걸음씩 나아가라.",
+                        "배움에는 끝이 없다."
+                    ];
+                    
+                    const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+                    document.getElementById('quote-of-day').textContent = `"${randomQuote}"`;
+                },
+
+                // 통계 데이터 불러오기
+                loadStatisticsData() {
+                    console.log('통계 데이터 불러오기 시작');
+                    
+                    // 통계 섹션 표시
+                    document.getElementById('statistics-section').classList.remove('hidden');
+                    
+                    // 과목별 점수 카드 업데이트
+                    this.updateSubjectCards();
+                    this.updateSummaryCards();
+                    
+                    console.log('통계 데이터 불러오기 완료');
+                },
+
+                // 과목별 점수 카드 업데이트
+                updateSubjectCards() {
+                    const subjects = ['06재산보험', '07특종보험', '08배상책임보험', '09해상보험'];
+                    const scores = [55, 65, 67, 30]; // 더미 점수
+                    const subjectCards = document.getElementById('subject-cards');
+                    subjectCards.innerHTML = '';
+                    
+                    subjects.forEach((subject, index) => {
+                        const score = scores[index];
+                        const isPass = score >= 40;
+                        const card = document.createElement('div');
+                        card.className = 'flex justify-between items-center p-2 bg-white rounded border';
+                        card.innerHTML = `
+                            <div class="flex-1">
+                                <div class="font-medium text-sm">${subject}</div>
+                                <div class="text-xs text-gray-500">기준: 40점</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-bold ${isPass ? 'text-green-600' : 'text-red-600'}">${score}점</div>
+                                <div class="text-xs ${isPass ? 'text-green-600' : 'text-red-600'}">${isPass ? '합격' : '불합격'}</div>
+                            </div>
+                        `;
+                        subjectCards.appendChild(card);
+                    });
+                },
+
+                // 전체 요약 카드 업데이트
+                updateSummaryCards() {
+                    const scores = [55, 65, 67, 30]; // 더미 점수
+                    const overallScore = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+                    const lowestScore = Math.min(...scores);
+                    const isPass = overallScore >= 60 && lowestScore >= 40;
+                    
+                    const summaryCards = document.getElementById('summary-cards');
+                    summaryCards.innerHTML = '';
+                    
+                    // 평균 점수 카드
+                    const isAvgPass = overallScore >= 60;
+                    const avgCard = document.createElement('div');
+                    avgCard.className = 'flex justify-between items-center p-3 bg-white rounded border';
+                    avgCard.innerHTML = `
+                        <div class="flex-1">
+                            <div class="font-semibold">평균점수</div>
+                            <div class="text-xs text-gray-500">기준: 60점</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-bold ${isAvgPass ? 'text-green-600' : 'text-red-600'}">${overallScore}점</div>
+                            <div class="text-xs ${isAvgPass ? 'text-green-600' : 'text-red-600'}">${isAvgPass ? '합격' : '불합격'}</div>
+                        </div>
+                    `;
+                    summaryCards.appendChild(avgCard);
+                    
+                    // 최종 합격 여부 카드
+                    const finalCard = document.createElement('div');
+                    finalCard.className = `flex justify-between items-center p-3 rounded border ${isPass ? 'bg-green-100 border-green-300' : 'bg-red-100 border-red-300'}`;
+                    finalCard.innerHTML = `
+                        <div class="flex-1">
+                            <div class="font-bold">최종합격여부</div>
+                            <div class="text-xs text-gray-500">모든 조건 만족</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-bold ${isPass ? 'text-green-600' : 'text-red-600'}">${isPass ? '합격' : '불합격'}</div>
+                            <div class="text-xs ${isPass ? 'text-green-600' : 'text-red-600'}">${isPass ? '🎉' : '⚠️'}</div>
+                        </div>
+                    `;
+                    summaryCards.appendChild(finalCard);
+                },
+
+                // 모든 학습 화면 숨기기
+                hideAllScreens() {
+                    document.getElementById('large-category-learning-screen').classList.add('hidden');
+                    document.getElementById('statistics-section').classList.add('hidden');
+                },
+
+                // 홈으로 돌아가기
+                goToHome() {
+                    console.log('홈으로 돌아가기');
+                    
+                    this.hideAllScreens();
+                    
+                    // 현재 모드 업데이트
+                    document.getElementById('current-mode').textContent = '모드 선택';
+                }
+            },
+
+            // 학습 엔진
+            learning: {
+                // 학습 모드 시작
+                startMode(mode) {
+                    console.log(`학습 모드 시작: ${mode}`);
+                    
+                    ACIUApp.ui.hideAllScreens(); // 모든 화면 숨김
+                    
+                    if (mode === 'layer1') {
+                        this.startLargeCategoryLearning();
+                    } else {
+                        alert(`${mode} 모드가 준비 중입니다.`);
+                    }
+                },
+
+                // 대분류 학습 시작
+                startLargeCategoryLearning() {
+                    console.log('대분류 학습 모드 시작');
+                    
+                    // 대분류 학습 화면 표시
+                    document.getElementById('large-category-learning-screen').classList.remove('hidden');
+                    
+                    // 현재 모드 업데이트
+                    document.getElementById('current-mode').textContent = '대분류 학습';
+                    
+                    // 선택된 카테고리 초기화
+                    this.selectedCategory = null;
+                    
+                    console.log('대분류 학습 화면 표시됨');
+                },
+
+                // 대분류 선택
+                selectCategory(category) {
+                    console.log(`대분류 선택: ${category}`);
+                    
+                    // 선택된 카테고리 저장
+                    this.selectedCategory = category;
+                    
+                    // UI 업데이트
+                    document.getElementById('selected-category').textContent = category;
+                    
+                    // 버튼 시각적 피드백
+                    this.updateCategoryButtonSelection(category);
+                    
+                    console.log(`${category} 카테고리 선택됨`);
+                },
+
+                // 카테고리 버튼 선택 상태 업데이트
+                updateCategoryButtonSelection(selectedCategory) {
+                    // 모든 카테고리 버튼에서 선택 상태 제거
+                    document.querySelectorAll('.category-btn').forEach(btn => {
+                        btn.classList.remove('ring-4', 'ring-blue-300', 'ring-2', 'ring-white');
+                    });
+                    
+                    // 선택된 카테고리 버튼 강조
+                    const selectedButton = document.querySelector(`[data-category="${selectedCategory}"]`);
+                    if (selectedButton) {
+                        selectedButton.classList.add('ring-4', 'ring-blue-300');
+                    }
+                }
+            }
+        };
+
+        // 페이지 로드 시 초기화
+        window.onload = function() {
+            ACIUApp.ui.init();
+            
+            // 1초마다 시간 업데이트
+            setInterval(() => {
+                ACIUApp.ui.updateCurrentTime();
+            }, 1000);
+        };
+    </script>
+</body>
+</html> 

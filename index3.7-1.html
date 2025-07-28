@@ -415,50 +415,331 @@
             </div>
 
             <div id="large-category-question-area" class="hidden">
-                <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
-                    <div class="mb-4 p-4 bg-gray-50 rounded-lg">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-sm text-gray-600" id="large-category-question-type">진위형</span>
-                            <span class="text-sm text-gray-600" id="large-category-question-code">ABANK-0001</span>
-                        </div>
-                        <div class="text-sm text-gray-600 mb-2">
-                            <span id="large-category-layer-info">06재산보험 > 화재보험</span>
-                        </div>
-                    </div>
-
-                    <div class="mb-6">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">문제</h3>
-                        <p class="text-gray-700 leading-relaxed" id="large-category-question-text">
-                            대분류를 선택하면 문제가 표시됩니다.
-                        </p>
-                    </div>
-
-                    <div class="mb-6">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">답안 선택</h3>
-                        <div id="large-category-answer-buttons" class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            </div>
-                    </div>
-
-                    <div id="large-category-result-area" class="hidden mb-6">
-                        <div class="p-4 rounded-lg" id="large-category-result-message">
-                            </div>
-                    </div>
-
-                    <div class="flex justify-between items-center">
-                        <button onclick="ACIUApp.learning.prevQuestion()" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg">
-                            이전 문제
-                        </button>
-                        <div class="flex space-x-2">
-                            <button onclick="ACIUApp.learning.checkAnswer()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">
-                                정답 확인
-                            </button>
-                            <button onclick="ACIUApp.learning.showExplanation()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg hidden" id="large-category-explanation-btn">
-                                해설 보기
+                <!-- 재산보험 모듈 -->
+                <div id="property-insurance-module" class="hidden">
+                    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-blue-800">🏠 재산보험 모듈</h3>
+                            <button onclick="ACIUApp.learning.hideModule('property-insurance')" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg text-sm">
+                                모듈 닫기
                             </button>
                         </div>
-                        <button onclick="ACIUApp.learning.nextQuestion()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">
-                            다음 문제
-                        </button>
+                        
+                        <!-- 재산보험 통계 -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                            <div class="bg-blue-50 rounded-lg p-4">
+                                <h4 class="text-lg font-semibold text-blue-800 mb-2">진행률</h4>
+                                <p class="text-2xl font-bold text-blue-600" id="property-progress-percent">0%</p>
+                                <p class="text-sm text-gray-600" id="property-completed-text">총 0문제 중 0문제 완료</p>
+                            </div>
+                            <div class="bg-green-50 rounded-lg p-4">
+                                <h4 class="text-lg font-semibold text-green-800 mb-2">정답률</h4>
+                                <p class="text-2xl font-bold text-green-600" id="property-accuracy-percent">0%</p>
+                                <p class="text-sm text-gray-600" id="property-correct-text">풀이 0문제 중 0문제 정답</p>
+                            </div>
+                            <div class="bg-orange-50 rounded-lg p-4">
+                                <h4 class="text-lg font-semibold text-orange-800 mb-2">문제 정보</h4>
+                                <p class="text-2xl font-bold text-orange-600" id="property-total-count">0</p>
+                                <p class="text-sm text-gray-600">재산보험 문제 수</p>
+                            </div>
+                        </div>
+
+                        <!-- 재산보험 문제 영역 -->
+                        <div id="property-question-area" class="hidden">
+                            <div class="mb-4 p-4 bg-gray-50 rounded-lg">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-sm text-gray-600" id="property-question-type">진위형</span>
+                                    <span class="text-sm text-gray-600" id="property-question-code">ABANK-0001</span>
+                                </div>
+                                <div class="text-sm text-gray-600 mb-2">
+                                    <span id="property-layer-info">06재산보험 > 재산보험</span>
+                                </div>
+                            </div>
+
+                            <div class="mb-6">
+                                <h4 class="text-lg font-semibold text-gray-800 mb-4">문제</h4>
+                                <p class="text-gray-700 leading-relaxed" id="property-question-text">
+                                    재산보험 문제를 로드하는 중입니다...
+                                </p>
+                            </div>
+
+                            <div class="mb-6">
+                                <h4 class="text-lg font-semibold text-gray-800 mb-4">답안 선택</h4>
+                                <div id="property-answer-buttons" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                </div>
+                            </div>
+
+                            <div id="property-result-area" class="hidden mb-6">
+                                <div class="p-4 rounded-lg" id="property-result-message">
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between items-center">
+                                <button onclick="ACIUApp.learning.prevPropertyQuestion()" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg">
+                                    이전 문제
+                                </button>
+                                <div class="flex space-x-2">
+                                    <button onclick="ACIUApp.learning.checkPropertyAnswer()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">
+                                        정답 확인
+                                    </button>
+                                    <button onclick="ACIUApp.learning.showPropertyExplanation()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg hidden" id="property-explanation-btn">
+                                        해설 보기
+                                    </button>
+                                    <button onclick="ACIUApp.learning.resetPropertyProgress()" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg">
+                                        진행상황 초기화
+                                    </button>
+                                </div>
+                                <button onclick="ACIUApp.learning.nextPropertyQuestion()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">
+                                    다음 문제
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 특종보험 모듈 -->
+                <div id="special-insurance-module" class="hidden">
+                    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-green-800">🏠 특종보험 모듈</h3>
+                            <button onclick="ACIUApp.learning.hideModule('special-insurance')" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg text-sm">
+                                모듈 닫기
+                            </button>
+                        </div>
+                        
+                        <!-- 특종보험 통계 -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                            <div class="bg-blue-50 rounded-lg p-4">
+                                <h4 class="text-lg font-semibold text-blue-800 mb-2">진행률</h4>
+                                <p class="text-2xl font-bold text-blue-600" id="special-progress-percent">0%</p>
+                                <p class="text-sm text-gray-600" id="special-completed-text">총 0문제 중 0문제 완료</p>
+                            </div>
+                            <div class="bg-green-50 rounded-lg p-4">
+                                <h4 class="text-lg font-semibold text-green-800 mb-2">정답률</h4>
+                                <p class="text-2xl font-bold text-green-600" id="special-accuracy-percent">0%</p>
+                                <p class="text-sm text-gray-600" id="special-correct-text">풀이 0문제 중 0문제 정답</p>
+                            </div>
+                            <div class="bg-orange-50 rounded-lg p-4">
+                                <h4 class="text-lg font-semibold text-orange-800 mb-2">문제 정보</h4>
+                                <p class="text-2xl font-bold text-orange-600" id="special-total-count">0</p>
+                                <p class="text-sm text-gray-600">특종보험 문제 수</p>
+                            </div>
+                        </div>
+
+                        <!-- 특종보험 문제 영역 -->
+                        <div id="special-question-area" class="hidden">
+                            <div class="mb-4 p-4 bg-gray-50 rounded-lg">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-sm text-gray-600" id="special-question-type">진위형</span>
+                                    <span class="text-sm text-gray-600" id="special-question-code">ABANK-0001</span>
+                                </div>
+                                <div class="text-sm text-gray-600 mb-2">
+                                    <span id="special-layer-info">07특종보험 > 특종보험</span>
+                                </div>
+                            </div>
+
+                            <div class="mb-6">
+                                <h4 class="text-lg font-semibold text-gray-800 mb-4">문제</h4>
+                                <p class="text-gray-700 leading-relaxed" id="special-question-text">
+                                    특종보험 문제를 로드하는 중입니다...
+                                </p>
+                            </div>
+
+                            <div class="mb-6">
+                                <h4 class="text-lg font-semibold text-gray-800 mb-4">답안 선택</h4>
+                                <div id="special-answer-buttons" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                </div>
+                            </div>
+
+                            <div id="special-result-area" class="hidden mb-6">
+                                <div class="p-4 rounded-lg" id="special-result-message">
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between items-center">
+                                <button onclick="ACIUApp.learning.prevSpecialQuestion()" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg">
+                                    이전 문제
+                                </button>
+                                <div class="flex space-x-2">
+                                    <button onclick="ACIUApp.learning.checkSpecialAnswer()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">
+                                        정답 확인
+                                    </button>
+                                    <button onclick="ACIUApp.learning.showSpecialExplanation()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg hidden" id="special-explanation-btn">
+                                        해설 보기
+                                    </button>
+                                    <button onclick="ACIUApp.learning.resetSpecialProgress()" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg">
+                                        진행상황 초기화
+                                    </button>
+                                </div>
+                                <button onclick="ACIUApp.learning.nextSpecialQuestion()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">
+                                    다음 문제
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 배상책임보험 모듈 -->
+                <div id="liability-insurance-module" class="hidden">
+                    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-purple-800">🏠 배상책임보험 모듈</h3>
+                            <button onclick="ACIUApp.learning.hideModule('liability-insurance')" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg text-sm">
+                                모듈 닫기
+                            </button>
+                        </div>
+                        
+                        <!-- 배상책임보험 통계 -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                            <div class="bg-blue-50 rounded-lg p-4">
+                                <h4 class="text-lg font-semibold text-blue-800 mb-2">진행률</h4>
+                                <p class="text-2xl font-bold text-blue-600" id="liability-progress-percent">0%</p>
+                                <p class="text-sm text-gray-600" id="liability-completed-text">총 0문제 중 0문제 완료</p>
+                            </div>
+                            <div class="bg-green-50 rounded-lg p-4">
+                                <h4 class="text-lg font-semibold text-green-800 mb-2">정답률</h4>
+                                <p class="text-2xl font-bold text-green-600" id="liability-accuracy-percent">0%</p>
+                                <p class="text-sm text-gray-600" id="liability-correct-text">풀이 0문제 중 0문제 정답</p>
+                            </div>
+                            <div class="bg-orange-50 rounded-lg p-4">
+                                <h4 class="text-lg font-semibold text-orange-800 mb-2">문제 정보</h4>
+                                <p class="text-2xl font-bold text-orange-600" id="liability-total-count">0</p>
+                                <p class="text-sm text-gray-600">배상책임보험 문제 수</p>
+                            </div>
+                        </div>
+
+                        <!-- 배상책임보험 문제 영역 -->
+                        <div id="liability-question-area" class="hidden">
+                            <div class="mb-4 p-4 bg-gray-50 rounded-lg">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-sm text-gray-600" id="liability-question-type">진위형</span>
+                                    <span class="text-sm text-gray-600" id="liability-question-code">ABANK-0001</span>
+                                </div>
+                                <div class="text-sm text-gray-600 mb-2">
+                                    <span id="liability-layer-info">08배상책임보험 > 배상책임보험</span>
+                                </div>
+                            </div>
+
+                            <div class="mb-6">
+                                <h4 class="text-lg font-semibold text-gray-800 mb-4">문제</h4>
+                                <p class="text-gray-700 leading-relaxed" id="liability-question-text">
+                                    배상책임보험 문제를 로드하는 중입니다...
+                                </p>
+                            </div>
+
+                            <div class="mb-6">
+                                <h4 class="text-lg font-semibold text-gray-800 mb-4">답안 선택</h4>
+                                <div id="liability-answer-buttons" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                </div>
+                            </div>
+
+                            <div id="liability-result-area" class="hidden mb-6">
+                                <div class="p-4 rounded-lg" id="liability-result-message">
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between items-center">
+                                <button onclick="ACIUApp.learning.prevLiabilityQuestion()" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg">
+                                    이전 문제
+                                </button>
+                                <div class="flex space-x-2">
+                                    <button onclick="ACIUApp.learning.checkLiabilityAnswer()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">
+                                        정답 확인
+                                    </button>
+                                    <button onclick="ACIUApp.learning.showLiabilityExplanation()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg hidden" id="liability-explanation-btn">
+                                        해설 보기
+                                    </button>
+                                    <button onclick="ACIUApp.learning.resetLiabilityProgress()" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg">
+                                        진행상황 초기화
+                                    </button>
+                                </div>
+                                <button onclick="ACIUApp.learning.nextLiabilityQuestion()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">
+                                    다음 문제
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 해상보험 모듈 -->
+                <div id="marine-insurance-module" class="hidden">
+                    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-yellow-800">🏠 해상보험 모듈</h3>
+                            <button onclick="ACIUApp.learning.hideModule('marine-insurance')" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg text-sm">
+                                모듈 닫기
+                            </button>
+                        </div>
+                        
+                        <!-- 해상보험 통계 -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                            <div class="bg-blue-50 rounded-lg p-4">
+                                <h4 class="text-lg font-semibold text-blue-800 mb-2">진행률</h4>
+                                <p class="text-2xl font-bold text-blue-600" id="marine-progress-percent">0%</p>
+                                <p class="text-sm text-gray-600" id="marine-completed-text">총 0문제 중 0문제 완료</p>
+                            </div>
+                            <div class="bg-green-50 rounded-lg p-4">
+                                <h4 class="text-lg font-semibold text-green-800 mb-2">정답률</h4>
+                                <p class="text-2xl font-bold text-green-600" id="marine-accuracy-percent">0%</p>
+                                <p class="text-sm text-gray-600" id="marine-correct-text">풀이 0문제 중 0문제 정답</p>
+                            </div>
+                            <div class="bg-orange-50 rounded-lg p-4">
+                                <h4 class="text-lg font-semibold text-orange-800 mb-2">문제 정보</h4>
+                                <p class="text-2xl font-bold text-orange-600" id="marine-total-count">0</p>
+                                <p class="text-sm text-gray-600">해상보험 문제 수</p>
+                            </div>
+                        </div>
+
+                        <!-- 해상보험 문제 영역 -->
+                        <div id="marine-question-area" class="hidden">
+                            <div class="mb-4 p-4 bg-gray-50 rounded-lg">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-sm text-gray-600" id="marine-question-type">진위형</span>
+                                    <span class="text-sm text-gray-600" id="marine-question-code">ABANK-0001</span>
+                                </div>
+                                <div class="text-sm text-gray-600 mb-2">
+                                    <span id="marine-layer-info">09해상보험 > 해상보험</span>
+                                </div>
+                            </div>
+
+                            <div class="mb-6">
+                                <h4 class="text-lg font-semibold text-gray-800 mb-4">문제</h4>
+                                <p class="text-gray-700 leading-relaxed" id="marine-question-text">
+                                    해상보험 문제를 로드하는 중입니다...
+                                </p>
+                            </div>
+
+                            <div class="mb-6">
+                                <h4 class="text-lg font-semibold text-gray-800 mb-4">답안 선택</h4>
+                                <div id="marine-answer-buttons" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                </div>
+                            </div>
+
+                            <div id="marine-result-area" class="hidden mb-6">
+                                <div class="p-4 rounded-lg" id="marine-result-message">
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between items-center">
+                                <button onclick="ACIUApp.learning.prevMarineQuestion()" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg">
+                                    이전 문제
+                                </button>
+                                <div class="flex space-x-2">
+                                    <button onclick="ACIUApp.learning.checkMarineAnswer()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">
+                                        정답 확인
+                                    </button>
+                                    <button onclick="ACIUApp.learning.showMarineExplanation()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg hidden" id="marine-explanation-btn">
+                                        해설 보기
+                                    </button>
+                                    <button onclick="ACIUApp.learning.resetMarineProgress()" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg">
+                                        진행상황 초기화
+                                    </button>
+                                </div>
+                                <button onclick="ACIUApp.learning.nextMarineQuestion()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">
+                                    다음 문제
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
