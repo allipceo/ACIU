@@ -379,6 +379,24 @@
 
             <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
                 <h2 class="text-xl font-semibold text-gray-800 mb-4">대분류 선택</h2>
+                
+                <!-- 학습 모드 선택 -->
+                <div class="mb-6 p-4 bg-blue-50 rounded-lg">
+                    <h3 class="text-lg font-semibold text-blue-800 mb-3">학습 모드 선택</h3>
+                    <div class="flex space-x-4">
+                        <label class="flex items-center">
+                            <input type="radio" name="learning-mode" value="continue" checked class="mr-2">
+                            <span class="text-blue-700 font-medium">🔄 이어풀기 (기본)</span>
+                            <span class="text-sm text-gray-600 ml-2">- 마지막 완료 지점부터 시작</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="learning-mode" value="restart" class="mr-2">
+                            <span class="text-orange-700 font-medium">🔄 처음부터 풀기</span>
+                            <span class="text-sm text-gray-600 ml-2">- 모든 진행상황 초기화</span>
+                        </label>
+                    </div>
+                </div>
+                
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4" id="category-buttons">
                     <button onclick="ACIUApp.learning.selectCategory('재산보험')" class="category-btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-6 rounded-lg transition-all" data-category="재산보험">
                         재산보험<br><span class="text-sm">(300문제)</span>
@@ -392,9 +410,7 @@
                     <button onclick="ACIUApp.learning.selectCategory('해상보험')" class="category-btn bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-4 px-6 rounded-lg transition-all" data-category="해상보험">
                         해상보험<br><span class="text-sm">(150문제)</span>
                     </button>
-                    <button onclick="ACIUApp.learning.selectCategory('자동차보험')" class="category-btn bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-6 rounded-lg transition-all" data-category="자동차보험">
-                        자동차보험<br><span class="text-sm">(479문제)</span>
-                    </button>
+
                 </div>
             </div>
 
@@ -1137,6 +1153,10 @@
                 selectCategory(category) {
                     console.log(`대분류 선택: ${category}`);
                     
+                    // 학습 모드 확인
+                    const learningMode = document.querySelector('input[name="learning-mode"]:checked').value;
+                    console.log(`선택된 학습 모드: ${learningMode}`);
+                    
                     // 선택된 카테고리 저장
                     this.selectedCategory = category;
                     
@@ -1146,10 +1166,24 @@
                     // 버튼 시각적 피드백
                     this.updateCategoryButtonSelection(category);
                     
+                    // 학습 모드에 따른 처리
+                    if (learningMode === 'restart') {
+                        // 처음부터 풀기: 진행상황 초기화
+                        this.resetProgressForCategory(category);
+                        console.log(`${category} 진행상황 초기화 완료`);
+                    }
+                    
                     // 더미 문제 생성 및 표시
                     this.loadDummyQuestionsForCategory(category);
                     
-                    console.log(`${category} 카테고리 선택됨`);
+                    console.log(`${category} 카테고리 선택됨 (모드: ${learningMode})`);
+                },
+
+                // 카테고리별 진행상황 초기화
+                resetProgressForCategory(category) {
+                    const storageKey = `${category.toLowerCase()}Progress`;
+                    localStorage.removeItem(storageKey);
+                    console.log(`${category} 진행상황 초기화: ${storageKey} 삭제됨`);
                 },
 
                 // 카테고리 버튼 선택 상태 업데이트
@@ -1173,7 +1207,14 @@
                     
                     // 문제 목록 설정
                     this.filteredQuestions = dummyQuestions;
-                    this.currentQuestionIndex = 0;
+                    
+                    // 진행상황 로드 (이어풀기 모드인 경우)
+                    const learningMode = document.querySelector('input[name="learning-mode"]:checked').value;
+                    if (learningMode === 'continue') {
+                        this.loadProgressForCategory(category);
+                    } else {
+                        this.currentQuestionIndex = 0;
+                    }
                     
                     // 문제 표시 영역 표시
                     document.getElementById('large-category-question-area').classList.remove('hidden');
@@ -1181,7 +1222,49 @@
                     // 첫 번째 문제 표시
                     this.displayLargeCategoryQuestion();
                     
-                    console.log(`${category} 카테고리 더미 문제 ${dummyQuestions.length}개 로드됨`);
+                    console.log(`${category} 카테고리 더미 문제 ${dummyQuestions.length}개 로드됨 (모드: ${learningMode})`);
+                },
+
+                // 카테고리별 진행상황 로드
+                loadProgressForCategory(category) {
+                    const storageKey = `${category.toLowerCase()}Progress`;
+                    const savedProgress = localStorage.getItem(storageKey);
+                    
+                    if (savedProgress) {
+                        try {
+                            const progress = JSON.parse(savedProgress);
+                            this.currentQuestionIndex = progress.currentQuestionIndex || 0;
+                            this.completedQuestions = progress.completedQuestions || 0;
+                            this.correctAnswers = progress.correctAnswers || 0;
+                            this.sessionProgress = progress.sessionProgress || {};
+                            
+                            console.log(`${category} 진행상황 로드 완료:`, progress);
+                        } catch (error) {
+                            console.error('진행상황 로드 오류:', error);
+                            this.currentQuestionIndex = 0;
+                        }
+                    } else {
+                        this.currentQuestionIndex = 0;
+                        this.completedQuestions = 0;
+                        this.correctAnswers = 0;
+                        this.sessionProgress = {};
+                        console.log(`${category} 새로운 진행상황 시작`);
+                    }
+                },
+
+                // 카테고리별 진행상황 저장
+                saveProgressForCategory(category) {
+                    const progress = {
+                        currentQuestionIndex: this.currentQuestionIndex,
+                        completedQuestions: this.completedQuestions,
+                        correctAnswers: this.correctAnswers,
+                        sessionProgress: this.sessionProgress,
+                        timestamp: new Date().toISOString()
+                    };
+                    
+                    const storageKey = `${category.toLowerCase()}Progress`;
+                    localStorage.setItem(storageKey, JSON.stringify(progress));
+                    console.log(`${category} 진행상황 저장 완료:`, progress);
                 },
 
                 // 더미 문제 생성
@@ -1239,9 +1322,47 @@
                     // 답안 버튼 업데이트
                     this.updateLargeCategoryAnswerButtons();
 
-                    // 결과 영역 초기화
-                    document.getElementById('large-category-result-area').classList.add('hidden');
-                    document.getElementById('large-category-explanation-btn').classList.add('hidden');
+                    // 이전에 풀었던 문제인지 확인
+                    const previousResult = this.sessionProgress && this.sessionProgress[this.currentQuestionIndex];
+                    if (previousResult) {
+                        // 이전 결과 표시
+                        this.showPreviousLargeCategoryResult(previousResult);
+                    } else {
+                        // 결과 영역 초기화
+                        document.getElementById('large-category-result-area').classList.add('hidden');
+                        document.getElementById('large-category-explanation-btn').classList.add('hidden');
+                    }
+                },
+
+                // 이전 대분류 결과 표시
+                showPreviousLargeCategoryResult(previousResult) {
+                    const resultArea = document.getElementById('large-category-result-area');
+                    const resultMessage = document.getElementById('large-category-result-message');
+                    
+                    resultArea.classList.remove('hidden');
+                    
+                    if (previousResult.isCorrect) {
+                        resultMessage.className = 'p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg';
+                        resultMessage.innerHTML = `
+                            <div class="font-bold mb-2">✅ 이전에 정답입니다!</div>
+                            <div class="text-sm">선택한 답안: ${previousResult.selectedAnswer}</div>
+                            <div class="text-sm">정답: ${this.currentQuestion.ANSWER}</div>
+                            <div class="text-xs text-gray-500 mt-2">풀이 시간: ${new Date(previousResult.timestamp).toLocaleString()}</div>
+                        `;
+                    } else {
+                        resultMessage.className = 'p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg';
+                        resultMessage.innerHTML = `
+                            <div class="font-bold mb-2">❌ 이전에 오답입니다.</div>
+                            <div class="text-sm">선택한 답안: ${previousResult.selectedAnswer}</div>
+                            <div class="text-sm">정답: ${this.currentQuestion.ANSWER}</div>
+                            <div class="text-xs text-gray-500 mt-2">풀이 시간: ${new Date(previousResult.timestamp).toLocaleString()}</div>
+                        `;
+                    }
+
+                    // 해설 버튼 표시 (해설이 있는 경우)
+                    if (this.currentQuestion.EXPLAIN) {
+                        document.getElementById('large-category-explanation-btn').classList.remove('hidden');
+                    }
                 },
 
                 // 대분류 답안 버튼 업데이트
@@ -1515,6 +1636,24 @@
                     
                     // 진행상황 저장 (이어풀기용)
                     localStorage.setItem('lastSolvedQcode', this.currentQuestion.QCODE);
+                    
+                    // 대분류 학습 진행상황 저장
+                    if (this.selectedCategory) {
+                        this.completedQuestions = (this.completedQuestions || 0) + 1;
+                        if (isCorrect) {
+                            this.correctAnswers = (this.correctAnswers || 0) + 1;
+                        }
+                        
+                        // 현재 문제의 진행상황 저장
+                        this.sessionProgress = this.sessionProgress || {};
+                        this.sessionProgress[this.currentQuestionIndex] = {
+                            isCorrect: isCorrect,
+                            selectedAnswer: this.selectedAnswer,
+                            timestamp: new Date().toISOString()
+                        };
+                        
+                        this.saveProgressForCategory(this.selectedCategory);
+                    }
                     
                     // 학습 이력 저장 (학습 현황 반영용)
                     this.saveLearningHistory(isCorrect);
