@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AICU QUIZ 앱 v3.8.4</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Papa Parse 라이브러리 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    
+    <style>
+        /* 기본 스타일 */
+        .hidden {
+            display: none !important;
+        }
+        
+        .answer-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .answer-btn:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- 기본 컨테이너 -->
+    <div id="app" class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">
+            AICU QUIZ 앱 v3.8.4
+        </h1>
+        
+        <!-- 홈 화면 (모듈 3.1) -->
+        <div id="home-screen" class="bg-white rounded-lg shadow-md p-8">
+            <!-- 첫 번째 박스 - D-day 카운터와 명언 -->
+            <div class="bg-white rounded-lg shadow-lg p-8 mb-6">
+                <!-- 상단 정보 -->
+                <div class="flex justify-between items-start mb-6">
+                    <!-- 좌측상단: 사용자명과 시험명 -->
+                    <div class="text-left">
+                        <div class="text-lg font-semibold text-gray-800" id="user-name-display">사용자: 조대표님</div>
+                        <div class="text-sm text-gray-600">시험명: ACIU</div>
+                    </div>
+                    
+                    <!-- 우측상단: 시험일 -->
+                    <div class="text-right">
+                        <div class="text-sm text-gray-600">시험일</div>
+                        <div class="text-lg font-semibold text-gray-800" id="exam-date-display">2025년 12월 15일</div>
+                    </div>
+                </div>
+                
+                <!-- D-day 카운터 -->
+                <div class="text-center mb-6">
+                    <div class="text-6xl font-bold text-blue-600 mb-2" id="d-day-display">D-138일</div>
+                    <div class="text-sm text-gray-600">시험까지 남은 일수</div>
+                </div>
+                
+                <!-- 오늘의 명언 -->
+                <div class="text-center">
+                    <p class="text-3xl text-gray-700 italic font-medium" id="quote-of-day">
+                        "꾸준함이 최고의 재능입니다."
+                    </p>
+                </div>
+            </div>
+
+            <!-- 설정 버튼 -->
+            <div class="flex justify-end mb-4">
+                <button onclick="openUserSettings()" class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded text-sm">
+                    ⚙️ 설정
+                </button>
+            </div>
+
+            <!-- 합격선 현황 - 간단한 프로그레스바 -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">합격선 현황</h2>
+                <div class="space-y-4">
+                    <!-- 재산보험 -->
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium">재산보험</span>
+                        <span class="text-sm text-gray-600">35점</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div class="bg-blue-600 h-3 rounded-full progress-bar" style="width: 35%"></div>
+                    </div>
+                    
+                    <!-- 특종보험 -->
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium">특종보험</span>
+                        <span class="text-sm text-gray-600">50점</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div class="bg-green-600 h-3 rounded-full progress-bar" style="width: 50%"></div>
+                    </div>
+                    
+                    <!-- 배상책임보험 -->
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium">배상책임보험</span>
+                        <span class="text-sm text-gray-600">70점</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div class="bg-yellow-600 h-3 rounded-full progress-bar" style="width: 70%"></div>
+                    </div>
+                    
+                    <!-- 해상보험 -->
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium">해상보험</span>
+                        <span class="text-sm text-gray-600">80점</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div class="bg-purple-600 h-3 rounded-full progress-bar" style="width: 80%"></div>
+                    </div>
+                    
+                    <!-- 평균 -->
+                    <div class="border-t pt-4 mt-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-lg font-semibold">평균</span>
+                            <span class="text-lg font-bold text-blue-600">58점</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-3">
+                            <div class="bg-blue-600 h-3 rounded-full progress-bar" style="width: 58%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- 합격 조건 안내 -->
+                    <div class="mt-4 p-3 bg-yellow-50 rounded-lg">
+                        <p class="text-sm text-yellow-800">
+                            <strong>합격 조건:</strong> 각 과목 40점 이상 + 4과목 평균 60점 이상
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 보유 문제수 현황 -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">보유 문제수 현황</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-blue-600" id="ins-questions">0</div>
+                        <div class="text-sm text-gray-600">인스교재</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-green-600" id="exam-questions">0</div>
+                        <div class="text-sm text-gray-600">보험중개사시험</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-purple-600" id="total-questions">0</div>
+                        <div class="text-sm text-gray-600">합계</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 학습 진도 현황 -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">학습 진도 현황</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-blue-600" id="completed-questions">0</div>
+                        <div class="text-sm text-gray-600">완료한 문제</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-green-600" id="overall-progress-rate">0%</div>
+                        <div class="text-sm text-gray-600">전체 진도율</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-orange-600" id="daily-progress-rate">0%</div>
+                        <div class="text-sm text-gray-600">오늘 진도율</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 학습 모드 선택 -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">학습 모드를 선택해주세요</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+                    <button onclick="selectLearningMode('basic')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-6 rounded-lg">
+                        기본 학습
+                    </button>
+                    <button onclick="selectLearningMode('large-category')" class="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-6 rounded-lg">
+                        대분류 학습
+                    </button>
+                    <button onclick="selectLearningMode('sub-category')" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-4 px-6 rounded-lg">
+                        중분류 학습
+                    </button>
+                    <button onclick="selectLearningMode('choice')" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-4 px-6 rounded-lg">
+                        선택형 학습
+                    </button>
+                    <button onclick="selectLearningMode('truefalse')" class="bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-6 rounded-lg">
+                        진위형 학습
+                    </button>
+                    <button onclick="selectLearningMode('mock')" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-4 px-6 rounded-lg">
+                        모의고사
+                    </button>
+                </div>
+            </div>
+
+            <!-- 통계 데이터 불러오기 -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">통계 데이터 불러오기</h2>
+                <button onclick="loadStatisticsData()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg">
+                    통계 데이터 불러오기
+                </button>
+                <p class="text-sm text-gray-600 mt-2">버튼을 클릭하면 현재상태 총괄이 표시됩니다</p>
+            </div>
+        </div>
+        
+        <!-- 사용자 설정 모달 -->
+        <div id="user-settings-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+            <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-semibold text-gray-800">사용자 설정</h3>
+                    <button onclick="closeUserSettings()" class="text-gray-500 hover:text-gray-700 text-2xl">
+                        ×
+                    </button>
+                </div>
+                
+                <form id="user-settings-form" class="space-y-4">
+                    <div>
+                        <label for="user-name" class="block text-sm font-medium text-gray-700 mb-2">사용자 이름 *</label>
+                        <input type="text" id="user-name" name="user-name" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="이름을 입력하세요">
+                    </div>
+                    
+                    <div>
+                        <label for="user-phone" class="block text-sm font-medium text-gray-700 mb-2">휴대폰 번호 *</label>
+                        <input type="tel" id="user-phone" name="user-phone" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="010-1234-5678">
+                    </div>
+                    
+                    <div>
+                        <label for="exam-subject" class="block text-sm font-medium text-gray-700 mb-2">응시 과목</label>
+                        <input type="text" id="exam-subject" name="exam-subject" readonly
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100"
+                               value="ACIU">
+                        <p class="text-xs text-gray-500 mt-1">ACIU로 확정되었습니다</p>
+                    </div>
+                    
+                    <div>
+                        <label for="exam-date" class="block text-sm font-medium text-gray-700 mb-2">응시일 *</label>
+                        <input type="date" id="exam-date" name="exam-date" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div class="flex space-x-3 pt-4">
+                        <button type="submit" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                            저장
+                        </button>
+                        <button type="button" onclick="closeUserSettings()" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">
+                            취소
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- 기본 상태 표시 -->
+        <div id="status" class="text-center text-gray-600 mb-4">
+            앱 초기화 중...
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // 모듈 1.2: 모드별 설정 객체
+        const MODE_CONFIG = {
+            'basic': {
+                resultArea: 'result-area',
+                questionText: 'question-text',
+                questionCode: 'question-code',
+                questionType: 'question-type',
+                layerInfo: 'layer-info',
+                answerButtons: 'answer-buttons',
+                resultMessage: 'result-message',
+                prevButton: 'prev-button',
+                nextButton: 'next-button',
+                checkButton: 'check-button'
+            },
+            'large-category': {
+                resultArea: 'large-category-result-area',
+                questionText: 'large-category-question-text',
+                questionCode: 'large-category-question-code',
+                questionType: 'large-category-question-type',
+                layerInfo: 'large-category-layer-info',
+                answerButtons: 'large-category-answer-buttons',
+                resultMessage: 'large-category-result-message',
+                prevButton: 'large-category-prev-button',
+                nextButton: 'large-category-next-button',
+                checkButton: 'large-category-check-button'
+            }
+        };
+
+        // ===== 대문 기능 관련 함수들 =====
+        
+        // 현재 시간 업데이트 함수
+        function updateCurrentTime() {
+            const now = new Date();
+            const timeString = now.toLocaleString('ko-KR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                weekday: 'long',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('current-time').textContent = timeString;
+        }
+
+        // 통계 데이터 불러오기 함수
+        function loadStatisticsData() {
+            console.log('=== 통계 데이터 불러오기 시작 ===');
+            
+            // 보유 문제수 현황 업데이트
+            updateQuestionCounts();
+            
+            // 학습 진도 현황 업데이트
+            updateProgressData();
+            
+            // 합격선 현황 업데이트
+            updateProgressBars();
+            
+            // 상태 메시지 업데이트
+            document.getElementById('status').textContent = '통계 데이터 로드 완료';
+            document.getElementById('status').className = 'text-center text-green-600 mb-4 font-semibold';
+            
+            console.log('=== 통계 데이터 불러오기 완료 ===');
+        }
+
+        // 보유 문제수 현황 업데이트
+        function updateQuestionCounts() {
+            // 실제 데이터에서는 CSV 파일을 읽어서 계산
+            // 현재는 예시 데이터 사용
+            const insQuestions = 1379; // 인스교재 문제수
+            const examQuestions = 679; // 보험중개사시험 문제수
+            const totalQuestions = insQuestions + examQuestions;
+            
+            document.getElementById('ins-questions').textContent = insQuestions.toLocaleString();
+            document.getElementById('exam-questions').textContent = examQuestions.toLocaleString();
+            document.getElementById('total-questions').textContent = totalQuestions.toLocaleString();
+        }
+
+        // 학습 진도 현황 업데이트
+        function updateProgressData() {
+            // 실제 데이터에서는 로컬스토리지나 서버에서 진행상황을 읽어옴
+            // 현재는 예시 데이터 사용
+            const completedQuestions = 120; // 완료한 문제수
+            const totalQuestions = 1379; // 전체 문제수
+            const todayCompleted = 15; // 오늘 완료한 문제수
+            
+            const overallProgressRate = Math.round((completedQuestions / totalQuestions) * 100);
+            const dailyProgressRate = Math.round((todayCompleted / 50) * 100); // 목표: 하루 50문제
+            
+            document.getElementById('completed-questions').textContent = completedQuestions.toLocaleString();
+            document.getElementById('overall-progress-rate').textContent = overallProgressRate + '%';
+            document.getElementById('daily-progress-rate').textContent = dailyProgressRate + '%';
+        }
+
+        // 합격선 현황 업데이트 (간단한 프로그레스바)
+        function updateProgressBars() {
+            console.log('=== 합격선 현황 업데이트 ===');
+            
+            // 예시 점수 데이터 (실제로는 학습 데이터에서 계산)
+            const scores = {
+                '재산보험': 35,
+                '특종보험': 50,
+                '배상책임보험': 70,
+                '해상보험': 80
+            };
+            
+            // 평균 계산
+            const totalScore = Object.values(scores).reduce((sum, score) => sum + score, 0);
+            const averageScore = Math.round(totalScore / Object.keys(scores).length);
+            
+            // 각 과목별 프로그레스바 업데이트
+            Object.keys(scores).forEach((category, index) => {
+                const score = scores[category];
+                const percentage = Math.min(score, 100);
+                
+                // 프로그레스바 색상 결정
+                let colorClass = 'bg-blue-600';
+                if (score >= 60) colorClass = 'bg-green-600';
+                else if (score >= 40) colorClass = 'bg-yellow-600';
+                else colorClass = 'bg-red-600';
+                
+                // 프로그레스바 업데이트
+                const progressBars = document.querySelectorAll('.progress-bar');
+                if (progressBars[index]) {
+                    progressBars[index].style.width = percentage + '%';
+                    progressBars[index].className = `h-3 rounded-full ${colorClass}`;
+                }
+            });
+            
+            // 평균 점수 업데이트
+            const averageElement = document.querySelector('.text-lg.font-bold.text-blue-600');
+            if (averageElement) {
+                averageElement.textContent = averageScore + '점';
+            }
+            
+            // 평균 프로그레스바 업데이트
+            const averageProgressBar = document.querySelectorAll('.progress-bar')[4]; // 5번째 프로그레스바
+            if (averageProgressBar) {
+                averageProgressBar.style.width = Math.min(averageScore, 100) + '%';
+                if (averageScore >= 60) {
+                    averageProgressBar.className = 'h-3 rounded-full bg-green-600';
+                } else {
+                    averageProgressBar.className = 'h-3 rounded-full bg-red-600';
+                }
+            }
+            
+            console.log('합격선 현황 업데이트 완료');
+        }
+
+        // 학습 모드 선택 함수
+        function selectLearningMode(mode) {
+            console.log(`=== 학습 모드 선택: ${mode} ===`);
+            
+            // 현재 모드 업데이트
+            document.getElementById('current-mode').textContent = getModeDisplayName(mode);
+            
+            // 홈 화면 숨기기
+            document.getElementById('home-screen').classList.add('hidden');
+            
+            // 모드별 화면 표시
+            if (mode === 'basic') {
+                showBasicLearningScreen();
+            } else if (mode === 'large-category') {
+                showLargeCategoryScreen();
+            } else {
+                // 아직 구현되지 않은 모드들
+                alert(`${getModeDisplayName(mode)} 모드가 준비 중입니다.`);
+                document.getElementById('home-screen').classList.remove('hidden');
+                document.getElementById('current-mode').textContent = '모드 선택';
+            }
+            
+            // 상태 업데이트
+            document.getElementById('status').textContent = `${getModeDisplayName(mode)} 모드 선택됨`;
+            document.getElementById('status').className = 'text-center text-green-600 mb-4 font-semibold';
+        }
+
+        // 모드 표시명 반환 함수
+        function getModeDisplayName(mode) {
+            const modeNames = {
+                'basic': '기본 학습',
+                'large-category': '대분류 학습',
+                'sub-category': '중분류 학습',
+                'choice': '선택형 학습',
+                'truefalse': '진위형 학습',
+                'mock': '모의고사'
+            };
+            return modeNames[mode] || mode;
+        }
+
+        // 대분류학습 화면 표시 함수
+        function showLargeCategoryScreen() {
+            console.log('대분류학습 화면 표시');
+            
+            // 홈 화면 숨기기
+            document.getElementById('home-screen').classList.add('hidden');
+            
+            // 대분류학습 화면 표시
+            document.getElementById('large-category-screen').classList.remove('hidden');
+            
+            // 상태 업데이트
+            document.getElementById('status').textContent = '대분류학습 모드';
+            document.getElementById('status').className = 'text-center text-green-600 mb-4 font-semibold';
+        }
+        
+        // 기본학습 화면 표시 함수
+        function showBasicLearningScreen() {
+            console.log('기본학습 화면 표시');
+            
+            // 홈 화면 숨기기
+            document.getElementById('home-screen').classList.add('hidden');
+            
+            // 기본학습 화면 표시
+            document.getElementById('basic-learning-screen').classList.remove('hidden');
+            
+            // 상태 업데이트
+            document.getElementById('status').textContent = '기본학습 모드';
+            document.getElementById('status').className = 'text-center text-blue-600 mb-4 font-semibold';
+        }
+
+        // 홈으로 돌아가기 함수
+        function goHome() {
+            console.log('=== 홈으로 돌아가기 ===');
+            
+            // 모든 화면 숨기기
+            document.getElementById('basic-learning-screen').classList.add('hidden');
+            document.getElementById('large-category-screen').classList.add('hidden');
+            
+            // 홈 화면 표시
+            document.getElementById('home-screen').classList.remove('hidden');
+            
+            // 현재 모드 초기화
+            document.getElementById('current-mode').textContent = '모드 선택';
+            
+            // 상태 업데이트
+            document.getElementById('status').textContent = '홈 화면으로 돌아왔습니다';
+            document.getElementById('status').className = 'text-center text-blue-600 mb-4 font-semibold';
+        }
+
+        // ===== 사용자 설정 관련 함수들 =====
+        
+        // 사용자 설정 모달 열기
+        function openUserSettings() {
+            console.log('=== 사용자 설정 모달 열기 ===');
+            
+            // 저장된 사용자 정보 로드
+            loadUserSettings();
+            
+            // 모달 표시
+            document.getElementById('user-settings-modal').classList.remove('hidden');
+            
+            console.log('사용자 설정 모달이 열렸습니다');
+        }
+        
+        // 사용자 설정 모달 닫기
+        function closeUserSettings() {
+            console.log('=== 사용자 설정 모달 닫기 ===');
+            
+            // 모달 숨기기
+            document.getElementById('user-settings-modal').classList.add('hidden');
+            
+            console.log('사용자 설정 모달이 닫혔습니다');
+        }
+        
+        // 사용자 설정 저장
+        function saveUserSettings() {
+            console.log('=== 사용자 설정 저장 ===');
+            
+            const form = document.getElementById('user-settings-form');
+            const formData = new FormData(form);
+            
+            // 필수 필드 검증
+            const userName = formData.get('user-name');
+            const userPhone = formData.get('user-phone');
+            const examDate = formData.get('exam-date');
+            
+            if (!userName || !userPhone || !examDate) {
+                alert('모든 필수 항목을 입력해주세요.');
+                return false;
+            }
+            
+            // 휴대폰 번호 형식 검증
+            const phoneRegex = /^01[0-9]-\d{3,4}-\d{4}$/;
+            if (!phoneRegex.test(userPhone)) {
+                alert('휴대폰 번호 형식이 올바르지 않습니다. (예: 010-1234-5678)');
+                return false;
+            }
+            
+            // 사용자 정보 객체 생성
+            const userSettings = {
+                userName: userName,
+                userPhone: userPhone,
+                examSubject: 'ACIU',
+                examDate: examDate,
+                savedAt: new Date().toISOString()
+            };
+            
+            // 로컬 스토리지에 저장
+            try {
+                localStorage.setItem('aicu_user_settings', JSON.stringify(userSettings));
+                console.log('사용자 설정 저장 완료:', userSettings);
+                
+                // 대문 정보 업데이트
+                updateUserInfo(userSettings);
+                
+                // D-day 계산 및 업데이트
+                updateDDay(examDate);
+                
+                // 모달 닫기
+                closeUserSettings();
+                
+                // 성공 메시지
+                alert('사용자 설정이 저장되었습니다.');
+                
+                return true;
+            } catch (error) {
+                console.error('사용자 설정 저장 실패:', error);
+                alert('설정 저장 중 오류가 발생했습니다.');
+                return false;
+            }
+        }
+        
+        // 저장된 사용자 설정 로드
+        function loadUserSettings() {
+            console.log('=== 저장된 사용자 설정 로드 ===');
+            
+            try {
+                const savedSettings = localStorage.getItem('aicu_user_settings');
+                if (savedSettings) {
+                    const userSettings = JSON.parse(savedSettings);
+                    console.log('저장된 사용자 설정:', userSettings);
+                    
+                    // 폼에 값 설정
+                    document.getElementById('user-name').value = userSettings.userName || '';
+                    document.getElementById('user-phone').value = userSettings.userPhone || '';
+                    document.getElementById('exam-date').value = userSettings.examDate || '';
+                    
+                    // 대문 정보 업데이트
+                    updateUserInfo(userSettings);
+                    
+                    // D-day 계산 및 업데이트
+                    if (userSettings.examDate) {
+                        updateDDay(userSettings.examDate);
+                    }
+                    
+                    return userSettings;
+                }
+            } catch (error) {
+                console.error('사용자 설정 로드 실패:', error);
+            }
+            
+            return null;
+        }
+        
+        // 대문 사용자 정보 업데이트
+        function updateUserInfo(userSettings) {
+            console.log('=== 대문 사용자 정보 업데이트 ===');
+            
+            if (userSettings && userSettings.userName) {
+                document.getElementById('user-name-display').textContent = `사용자: ${userSettings.userName}`;
+                console.log('사용자 정보 업데이트 완료:', userSettings.userName);
+            } else {
+                document.getElementById('user-name-display').textContent = '사용자: 조대표님';
+                console.log('기본 사용자 정보 사용');
+            }
+        }
+        
+        // D-day 계산 및 업데이트
+        function updateDDay(examDate) {
+            console.log('=== D-day 계산 및 업데이트 ===');
+            
+            if (!examDate) {
+                document.getElementById('d-day-display').textContent = 'D-0일';
+                document.getElementById('exam-date-display').textContent = '날짜 미설정';
+                return;
+            }
+            
+            const examDateTime = new Date(examDate);
+            const currentDate = new Date();
+            
+            // 시간을 제외하고 날짜만 비교
+            examDateTime.setHours(0, 0, 0, 0);
+            currentDate.setHours(0, 0, 0, 0);
+            
+            const timeDiff = examDateTime.getTime() - currentDate.getTime();
+            const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+            
+            let ddayText = '';
+            if (daysDiff > 0) {
+                // 응시일이 미래인 경우: D-일수
+                ddayText = `D-${daysDiff}일`;
+            } else if (daysDiff === 0) {
+                // 응시일이 오늘인 경우: D-day
+                ddayText = 'D-day';
+            } else {
+                // 응시일이 과거인 경우: D+일수 (지난 일수)
+                ddayText = `D+${Math.abs(daysDiff)}일`;
+            }
+            
+            // D-day 표시 업데이트
+            document.getElementById('d-day-display').textContent = ddayText;
+            
+            // 시험일 표시 업데이트
+            const examDateFormatted = new Date(examDate).toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            document.getElementById('exam-date-display').textContent = examDateFormatted;
+            
+            console.log(`D-day 업데이트: ${ddayText} (${examDate})`);
+            
+            // D-day 색상 변경 (긴급도에 따라)
+            const ddayElement = document.getElementById('d-day-display');
+            if (daysDiff <= 7) {
+                // 7일 이내: 빨간색 (긴급)
+                ddayElement.className = 'text-6xl font-bold text-red-600 mb-2';
+            } else if (daysDiff <= 30) {
+                // 30일 이내: 주황색 (주의)
+                ddayElement.className = 'text-6xl font-bold text-orange-600 mb-2';
+            } else {
+                // 30일 이상: 기본 색상
+                ddayElement.className = 'text-6xl font-bold text-blue-600 mb-2';
+            }
+        }
+        
+        // 폼 제출 이벤트 리스너 추가
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('user-settings-form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    saveUserSettings();
+                });
+            }
+        });
+        
+        // 페이지 로드 시 초기화
+        window.onload = function() {
+            console.log('=== AICU QUIZ 앱 v3.8.4 초기화 ===');
+            
+            // 현재 시간 업데이트
+            updateCurrentTime();
+            
+            // 1초마다 시간 업데이트
+            setInterval(updateCurrentTime, 1000);
+            
+            // 저장된 사용자 설정 로드
+            loadUserSettings();
+            
+            // 초기 통계 데이터 로드
+            loadStatisticsData();
+            
+            // 상태 메시지 업데이트
+            document.getElementById('status').textContent = '앱 초기화 완료';
+            document.getElementById('status').className = 'text-center text-green-600 mb-4 font-semibold';
+            
+            console.log('=== 앱 초기화 완료 ===');
+        };
+    </script>
+</body>
+</html> 

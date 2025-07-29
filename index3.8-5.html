@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AICU QUIZ 앱 v3.8.2</title>
+    <title>AICU QUIZ 앱 v3.8.5</title>
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -30,36 +30,50 @@
     <!-- 기본 컨테이너 -->
     <div id="app" class="container mx-auto px-4 py-8">
         <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">
-            AICU QUIZ 앱 v3.8.2
+            AICU QUIZ 앱 v3.8.5
         </h1>
         
         <!-- 홈 화면 (모듈 3.1) -->
         <div id="home-screen" class="bg-white rounded-lg shadow-md p-8">
-            <!-- 헤더 정보 -->
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h2 class="text-2xl font-semibold text-gray-800">학습 모드 선택</h2>
-                    <span class="text-sm text-gray-600" id="current-mode">모드 선택</span>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <div class="text-sm text-gray-600">
-                        <span id="user-info">사용자: 조대표님</span> | 
-                        <span id="exam-dday">D-0일</span> | 
-                        <span id="current-time"></span>
+            <!-- 첫 번째 박스 - D-day 카운터와 명언 -->
+            <div class="bg-white rounded-lg shadow-lg p-8 mb-6">
+                <!-- 상단 정보 -->
+                <div class="flex justify-between items-start mb-6">
+                    <!-- 좌측상단: 사용자명과 시험명 -->
+                    <div class="text-left">
+                        <div class="text-lg font-semibold text-gray-800" id="user-name-display">사용자: 조대표님</div>
+                        <div class="text-sm text-gray-600">시험명: ACIU</div>
                     </div>
-                    <button onclick="openUserSettings()" class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm">
-                        ⚙️ 설정
-                    </button>
+                    
+                    <!-- 우측상단: 시험일 -->
+                    <div class="text-right">
+                        <div class="text-sm text-gray-600">시험일</div>
+                        <div class="text-lg font-semibold text-gray-800" id="exam-date-display">2025년 12월 15일</div>
+                    </div>
                 </div>
-            </div>
-
-            <!-- 메인 대시보드 -->
-            <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                
+                <!-- D-day 카운터 -->
+                <div class="text-center mb-6">
+                    <div class="text-6xl font-bold text-blue-600 mb-2" id="d-day-display">D-138일</div>
+                    <div class="text-sm text-gray-600">시험까지 남은 일수</div>
+                </div>
+                
+                <!-- 오늘의 명언 -->
                 <div class="text-center">
-                    <p class="text-lg text-gray-700 italic" id="quote-of-day">
+                    <p class="text-3xl text-gray-700 italic font-medium" id="quote-of-day">
                         "꾸준함이 최고의 재능입니다."
                     </p>
                 </div>
+            </div>
+
+            <!-- 설정 버튼과 통계 데이터 불러오기 버튼 -->
+            <div class="flex justify-end mb-4 space-x-3">
+                <button onclick="loadStatisticsData()" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded text-sm">
+                    📊 통계 데이터 불러오기
+                </button>
+                <button onclick="openUserSettings()" class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded text-sm">
+                    ⚙️ 설정
+                </button>
             </div>
 
             <!-- 보유 문제수 현황 -->
@@ -125,14 +139,7 @@
                 </div>
             </div>
 
-            <!-- 통계 데이터 불러오기 -->
-            <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4">통계 데이터 불러오기</h2>
-                <button onclick="loadStatisticsData()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg">
-                    통계 데이터 불러오기
-                </button>
-                <p class="text-sm text-gray-600 mt-2">버튼을 클릭하면 현재상태 총괄이 표시됩니다</p>
-            </div>
+
         </div>
         
         <!-- 사용자 설정 모달 -->
@@ -789,7 +796,7 @@
             });
         }
         
-        // 통계 업데이트 함수 (간단한 버전)
+        // 통계 업데이트 함수 (실시간 대문 업데이트 포함)
         function updateStatistics(isCorrect) {
             if (!window.statistics) {
                 window.statistics = {
@@ -810,6 +817,18 @@
             
             // 정답률 표시 업데이트
             updateAccuracyDisplay();
+            
+            // 저장 및 대문 업데이트 (에러 처리 포함)
+            try {
+                saveProgress();
+                // 대문이 표시되어 있을 때만 업데이트
+                if (!document.getElementById('home-screen').classList.contains('hidden')) {
+                    updateProgressData();
+                    updateQuestionCounts();
+                }
+            } catch (error) {
+                console.error('통계 업데이트 실패:', error);
+            }
         }
         
         // 정답 확인 테스트 함수
@@ -1369,47 +1388,25 @@
             
             const { total, correct, incorrect } = window.statistics;
             
-            // 기본학습 상세 통계
-            const basicStatsElement = document.getElementById('basic-detailed-stats');
-            if (basicStatsElement) {
-                basicStatsElement.innerHTML = `
-                    <div class="grid grid-cols-3 gap-4 text-center">
-                        <div>
-                            <div class="text-xl font-bold text-blue-600">${total}</div>
-                            <div class="text-xs text-gray-600">총 문제</div>
-                        </div>
-                        <div>
-                            <div class="text-xl font-bold text-green-600">${correct}</div>
-                            <div class="text-xs text-gray-600">정답</div>
-                        </div>
-                        <div>
-                            <div class="text-xl font-bold text-red-600">${incorrect}</div>
-                            <div class="text-xs text-gray-600">오답</div>
-                        </div>
-                    </div>
-                `;
-            }
+            // 기본학습 상세 통계 업데이트
+            const basicTotalElement = document.getElementById('total-questions');
+            const basicCorrectElement = document.getElementById('correct-answers');
+            const basicIncorrectElement = document.getElementById('incorrect-answers');
             
-            // 대분류학습 상세 통계
-            const largeStatsElement = document.getElementById('large-detailed-stats');
-            if (largeStatsElement) {
-                largeStatsElement.innerHTML = `
-                    <div class="grid grid-cols-3 gap-4 text-center">
-                        <div>
-                            <div class="text-xl font-bold text-green-600">${total}</div>
-                            <div class="text-xs text-gray-600">총 문제</div>
-                        </div>
-                        <div>
-                            <div class="text-xl font-bold text-green-600">${correct}</div>
-                            <div class="text-xs text-gray-600">정답</div>
-                        </div>
-                        <div>
-                            <div class="text-xl font-bold text-red-600">${incorrect}</div>
-                            <div class="text-xs text-gray-600">오답</div>
-                        </div>
-                    </div>
-                `;
-            }
+            if (basicTotalElement) basicTotalElement.textContent = total;
+            if (basicCorrectElement) basicCorrectElement.textContent = correct;
+            if (basicIncorrectElement) basicIncorrectElement.textContent = incorrect;
+            
+            // 대분류학습 상세 통계 업데이트
+            const largeTotalElement = document.getElementById('large-total-questions');
+            const largeCorrectElement = document.getElementById('large-correct-answers');
+            const largeIncorrectElement = document.getElementById('large-incorrect-answers');
+            
+            if (largeTotalElement) largeTotalElement.textContent = total;
+            if (largeCorrectElement) largeCorrectElement.textContent = correct;
+            if (largeIncorrectElement) largeIncorrectElement.textContent = incorrect;
+            
+            console.log(`상세 통계 업데이트: 총 ${total}개, 정답 ${correct}개, 오답 ${incorrect}개`);
         }
         
         // 정답률 테스트 함수
@@ -2370,41 +2367,81 @@
             console.log('=== 통계 데이터 불러오기 완료 ===');
         }
 
-        // 보유 문제수 현황 업데이트
+        // 보유 문제수 현황 업데이트 (실제 데이터 사용)
         function updateQuestionCounts() {
-            // 실제 데이터에서는 CSV 파일을 읽어서 계산
-            // 현재는 예시 데이터 사용
+            console.log('=== 보유 문제수 현황 업데이트 (실제 데이터) ===');
+            
+            // 전체 문제 수 (고정값)
             const insQuestions = 1379; // 인스교재 문제수
             const examQuestions = 679; // 보험중개사시험 문제수
             const totalQuestions = insQuestions + examQuestions;
             
+            // localStorage에서 실제 푼 문제 수 로드
+            const savedData = localStorage.getItem('aicu_save_data');
+            let completedQuestions = 0;
+            
+            if (savedData) {
+                try {
+                    const data = JSON.parse(savedData);
+                    if (data.statistics) {
+                        completedQuestions = data.statistics.total;
+                        console.log('실제 푼 문제 수:', completedQuestions);
+                    }
+                } catch (error) {
+                    console.error('통계 데이터 파싱 오류:', error);
+                }
+            }
+            
+            // 화면 업데이트
             document.getElementById('ins-questions').textContent = insQuestions.toLocaleString();
             document.getElementById('exam-questions').textContent = examQuestions.toLocaleString();
             document.getElementById('total-questions').textContent = totalQuestions.toLocaleString();
+            
+            console.log(`보유 문제수 현황 업데이트: 총 ${totalQuestions}개, 푼 문제 ${completedQuestions}개`);
         }
 
-        // 학습 진도 현황 업데이트
+        // 학습 진도 현황 업데이트 (실제 데이터 사용)
         function updateProgressData() {
-            // 실제 데이터에서는 로컬스토리지나 서버에서 진행상황을 읽어옴
-            // 현재는 예시 데이터 사용
-            const completedQuestions = 120; // 완료한 문제수
-            const totalQuestions = 1379; // 전체 문제수
-            const todayCompleted = 15; // 오늘 완료한 문제수
+            console.log('=== 학습 진도 현황 업데이트 (실제 데이터) ===');
             
+            // localStorage에서 실제 통계 데이터 로드
+            const savedData = localStorage.getItem('aicu_save_data');
+            let completedQuestions = 0;
+            let totalQuestions = 1379; // 전체 문제수 (고정)
+            let todayCompleted = 0; // 오늘 완료한 문제수 (추후 구현)
+            
+            if (savedData) {
+                try {
+                    const data = JSON.parse(savedData);
+                    if (data.statistics) {
+                        completedQuestions = data.statistics.total; // 실제 푼 문제 수
+                        console.log('실제 푼 문제 수:', completedQuestions);
+                    }
+                } catch (error) {
+                    console.error('통계 데이터 파싱 오류:', error);
+                }
+            }
+            
+            // 진도율 계산
             const overallProgressRate = Math.round((completedQuestions / totalQuestions) * 100);
             const dailyProgressRate = Math.round((todayCompleted / 50) * 100); // 목표: 하루 50문제
             
+            // 화면 업데이트
             document.getElementById('completed-questions').textContent = completedQuestions.toLocaleString();
             document.getElementById('overall-progress-rate').textContent = overallProgressRate + '%';
             document.getElementById('daily-progress-rate').textContent = dailyProgressRate + '%';
+            
+            console.log(`진도 현황 업데이트: ${completedQuestions}/${totalQuestions} (${overallProgressRate}%)`);
         }
 
         // 학습 모드 선택 함수 업데이트
         function selectLearningMode(mode) {
             console.log(`=== 학습 모드 선택: ${mode} ===`);
             
-            // 현재 모드 업데이트
-            document.getElementById('current-mode').textContent = getModeDisplayName(mode);
+            // 현재 모드 업데이트 (에러 처리 추가)
+            if (document.getElementById('current-mode')) {
+                document.getElementById('current-mode').textContent = getModeDisplayName(mode);
+            }
             
             // 홈 화면 숨기기
             document.getElementById('home-screen').classList.add('hidden');
@@ -2418,7 +2455,9 @@
                 // 아직 구현되지 않은 모드들
                 alert(`${getModeDisplayName(mode)} 모드가 준비 중입니다.`);
                 document.getElementById('home-screen').classList.remove('hidden');
-                document.getElementById('current-mode').textContent = '모드 선택';
+                if (document.getElementById('current-mode')) {
+                    document.getElementById('current-mode').textContent = '모드 선택';
+                }
             }
             
             // 상태 업데이트
@@ -2450,8 +2489,10 @@
             // 홈 화면 표시
             document.getElementById('home-screen').classList.remove('hidden');
             
-            // 현재 모드 초기화
-            document.getElementById('current-mode').textContent = '모드 선택';
+            // 현재 모드 초기화 (에러 처리 추가)
+            if (document.getElementById('current-mode')) {
+                document.getElementById('current-mode').textContent = '모드 선택';
+            }
             
             // 상태 업데이트
             document.getElementById('status').textContent = '홈 화면으로 돌아왔습니다';
@@ -2466,6 +2507,9 @@
             
             // 저장된 사용자 정보 로드
             loadUserSettings();
+            
+            // 현재 통계 표시 업데이트
+            updateCurrentStatsDisplay();
             
             // 모달 표시
             document.getElementById('user-settings-modal').classList.remove('hidden');
@@ -2573,15 +2617,169 @@
             return null;
         }
         
+        // 사용자 설정 모달 열기
+        function openUserSettings() {
+            console.log('=== 사용자 설정 모달 열기 ===');
+            
+            // 저장된 사용자 정보 로드
+            loadUserSettings();
+            
+            // 모달 표시
+            document.getElementById('user-settings-modal').classList.remove('hidden');
+            
+            console.log('사용자 설정 모달이 열렸습니다');
+        }
+        
+        // 사용자 설정 모달 닫기
+        function closeUserSettings() {
+            console.log('=== 사용자 설정 모달 닫기 ===');
+            
+            // 모달 숨기기
+            document.getElementById('user-settings-modal').classList.add('hidden');
+            
+            console.log('사용자 설정 모달이 닫혔습니다');
+        }
+        
+        // 사용자 설정 저장
+        function saveUserSettings() {
+            console.log('=== 사용자 설정 저장 ===');
+            
+            const form = document.getElementById('user-settings-form');
+            const formData = new FormData(form);
+            
+            // 필수 필드 검증
+            const userName = formData.get('userName');
+            const userPhone = formData.get('userPhone');
+            const examDate = formData.get('examDate');
+            
+            if (!userName || !userPhone || !examDate) {
+                alert('모든 필드를 입력해주세요.');
+                return;
+            }
+            
+            // 전화번호 형식 검증
+            const phoneRegex = /^010-\d{4}-\d{4}$/;
+            if (!phoneRegex.test(userPhone)) {
+                alert('전화번호 형식이 올바르지 않습니다. (예: 010-1234-5678)');
+                return;
+            }
+            
+            // 사용자 설정 객체 생성
+            const userSettings = {
+                userName: userName,
+                userPhone: userPhone,
+                examSubject: 'ACIU',
+                examDate: examDate
+            };
+            
+            // 로컬 스토리지에 저장
+            localStorage.setItem('userSettings', JSON.stringify(userSettings));
+            
+            console.log('사용자 설정 저장 완료:', userSettings);
+            
+            // 대문 정보 업데이트
+            updateUserInfo(userSettings);
+            updateDDay(examDate);
+            
+            // 모달 닫기
+            closeUserSettings();
+            
+            alert('설정이 저장되었습니다.');
+        }
+        
+        // 저장된 사용자 설정 로드
+        function loadUserSettings() {
+            console.log('=== 저장된 사용자 설정 로드 ===');
+            
+            const savedSettings = localStorage.getItem('userSettings');
+            if (savedSettings) {
+                const userSettings = JSON.parse(savedSettings);
+                
+                // 폼 필드에 값 설정
+                document.getElementById('user-name').value = userSettings.userName || '';
+                document.getElementById('user-phone').value = userSettings.userPhone || '';
+                document.getElementById('exam-date').value = userSettings.examDate || '';
+                
+                console.log('사용자 설정 로드 완료:', userSettings);
+                
+                // 대문 정보 업데이트
+                updateUserInfo(userSettings);
+                updateDDay(userSettings.examDate);
+            } else {
+                console.log('저장된 사용자 설정 없음');
+            }
+        }
+        
+        // 전체 통계 데이터 초기화
+        function clearAllStatistics() {
+            if (confirm('정말로 모든 학습 통계와 진행상황을 초기화하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.')) {
+                console.log('=== 전체 통계 데이터 초기화 ===');
+                
+                try {
+                    // localStorage에서 모든 관련 데이터 삭제
+                    localStorage.removeItem('aicu_save_data');
+                    localStorage.removeItem('aicu_progress');
+                    localStorage.removeItem('aicu_user_settings');
+                    localStorage.removeItem('userSettings');
+                    
+                    // 메모리 데이터 초기화
+                    window.statistics = { total: 0, correct: 0, incorrect: 0 };
+                    window.currentQuestion = null;
+                    window.selectedAnswer = null;
+                    window.currentQuestionIndex = 0;
+                    
+                    // 대문 통계 업데이트
+                    updateProgressData();
+                    updateQuestionCounts();
+                    
+                    // 설정 모달의 현재 통계 표시 업데이트
+                    updateCurrentStatsDisplay();
+                    
+                    alert('모든 통계 데이터가 초기화되었습니다.');
+                    console.log('통계 데이터 초기화 완료');
+                    
+                } catch (error) {
+                    console.error('통계 초기화 실패:', error);
+                    alert('초기화 중 오류가 발생했습니다.');
+                }
+            }
+        }
+        
+        // 현재 통계 표시 업데이트
+        function updateCurrentStatsDisplay() {
+            const savedData = localStorage.getItem('aicu_save_data');
+            let totalQuestions = 0;
+            let correctAnswers = 0;
+            let accuracy = 0;
+            
+            if (savedData) {
+                try {
+                    const data = JSON.parse(savedData);
+                    if (data.statistics) {
+                        totalQuestions = data.statistics.total;
+                        correctAnswers = data.statistics.correct;
+                        accuracy = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+                    }
+                } catch (error) {
+                    console.error('통계 데이터 파싱 오류:', error);
+                }
+            }
+            
+            const displayElement = document.getElementById('current-stats-display');
+            if (displayElement) {
+                displayElement.textContent = `푼 문제: ${totalQuestions}개, 정답률: ${accuracy}%`;
+            }
+        }
+        
         // 대문 사용자 정보 업데이트
         function updateUserInfo(userSettings) {
             console.log('=== 대문 사용자 정보 업데이트 ===');
             
             if (userSettings && userSettings.userName) {
-                document.getElementById('user-info').textContent = `사용자: ${userSettings.userName}`;
+                document.getElementById('user-name-display').textContent = `사용자: ${userSettings.userName}`;
                 console.log('사용자 정보 업데이트 완료:', userSettings.userName);
             } else {
-                document.getElementById('user-info').textContent = '사용자: 조대표님';
+                document.getElementById('user-name-display').textContent = '사용자: 조대표님';
                 console.log('기본 사용자 정보 사용');
             }
         }
@@ -2591,7 +2789,8 @@
             console.log('=== D-day 계산 및 업데이트 ===');
             
             if (!examDate) {
-                document.getElementById('exam-dday').textContent = 'D-0일';
+                document.getElementById('d-day-display').textContent = 'D-0일';
+                document.getElementById('exam-date-display').textContent = '날짜 미설정';
                 return;
             }
             
@@ -2617,20 +2816,30 @@
                 ddayText = `D+${Math.abs(daysDiff)}일`;
             }
             
-            document.getElementById('exam-dday').textContent = ddayText;
+            // D-day 표시 업데이트
+            document.getElementById('d-day-display').textContent = ddayText;
+            
+            // 시험일 표시 업데이트
+            const examDateFormatted = new Date(examDate).toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            document.getElementById('exam-date-display').textContent = examDateFormatted;
+            
             console.log(`D-day 업데이트: ${ddayText} (${examDate})`);
             
             // D-day 색상 변경 (긴급도에 따라)
-            const ddayElement = document.getElementById('exam-dday');
+            const ddayElement = document.getElementById('d-day-display');
             if (daysDiff <= 7) {
                 // 7일 이내: 빨간색 (긴급)
-                ddayElement.className = 'text-red-600 font-bold';
+                ddayElement.className = 'text-6xl font-bold text-red-600 mb-2';
             } else if (daysDiff <= 30) {
                 // 30일 이내: 주황색 (주의)
-                ddayElement.className = 'text-orange-600 font-bold';
+                ddayElement.className = 'text-6xl font-bold text-orange-600 mb-2';
             } else {
                 // 30일 이상: 기본 색상
-                ddayElement.className = 'text-gray-600';
+                ddayElement.className = 'text-6xl font-bold text-blue-600 mb-2';
             }
         }
         
@@ -2647,7 +2856,7 @@
         
         // 페이지 로드 시 초기화
         window.onload = function() {
-            console.log('=== AICU QUIZ 앱 v3.8.2 초기화 ===');
+            console.log('=== AICU QUIZ 앱 v3.8.5 초기화 ===');
             
             // 현재 시간 업데이트
             updateCurrentTime();
@@ -2658,8 +2867,27 @@
             // 저장된 사용자 설정 로드
             loadUserSettings();
             
-            // 초기 통계 데이터 로드
+            // 실제 통계 데이터로 대문 업데이트
             loadStatisticsData();
+            
+            // 테스트용 더미 데이터 추가 (실제 사용 시 제거)
+            if (!localStorage.getItem('aicu_save_data')) {
+                const testData = {
+                    statistics: {
+                        total: 25,
+                        correct: 20,
+                        incorrect: 5
+                    },
+                    currentQuestion: null,
+                    selectedAnswer: null,
+                    mode: 'basic',
+                    category: '기본학습',
+                    currentIndex: 0,
+                    timestamp: new Date().toISOString()
+                };
+                localStorage.setItem('aicu_save_data', JSON.stringify(testData));
+                console.log('테스트용 더미 데이터 추가됨');
+            }
             
             // 상태 메시지 업데이트
             document.getElementById('status').textContent = '앱 초기화 완료';
@@ -2668,5 +2896,60 @@
             console.log('=== 앱 초기화 완료 ===');
         };
     </script>
+    
+    <!-- 사용자 설정 모달 -->
+    <div id="user-settings-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 class="text-lg font-semibold mb-4">사용자 설정</h3>
+            <form id="user-settings-form">
+                <div class="space-y-4">
+                    <div>
+                        <label for="user-name" class="block text-sm font-medium text-gray-700 mb-2">사용자 이름</label>
+                        <input type="text" id="user-name" name="userName" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label for="user-phone" class="block text-sm font-medium text-gray-700 mb-2">휴대폰 번호</label>
+                        <input type="tel" id="user-phone" name="userPhone" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="010-1234-5678">
+                    </div>
+                    <div>
+                        <label for="exam-subject" class="block text-sm font-medium text-gray-700 mb-2">응시 과목</label>
+                        <input type="text" id="exam-subject" name="examSubject" value="ACIU" readonly class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100">
+                    </div>
+                    <div>
+                        <label for="exam-date" class="block text-sm font-medium text-gray-700 mb-2">응시일</label>
+                        <input type="date" id="exam-date" name="examDate" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                                    <div class="flex space-x-3 mt-6">
+                        <button type="submit" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md">저장</button>
+                        <button type="button" onclick="closeUserSettings()" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-md">취소</button>
+                    </div>
+                </form>
+                
+                <!-- 통계 데이터 관리 섹션 -->
+                <div class="border-t pt-4 mt-4">
+                    <h4 class="font-semibold text-gray-800 mb-3">통계 데이터 관리</h4>
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-sm font-medium text-gray-700">현재 학습 통계</div>
+                                <div class="text-xs text-gray-500" id="current-stats-display">
+                                    푼 문제: 0개, 정답률: 0%
+                                </div>
+                            </div>
+                            <button type="button" onclick="clearAllStatistics()" 
+                                    class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
+                                전체 초기화
+                            </button>
+                        </div>
+                        
+                        <div class="text-xs text-gray-500">
+                            ⚠️ 초기화하면 모든 학습 진행상황과 통계가 삭제됩니다.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 </body>
 </html>

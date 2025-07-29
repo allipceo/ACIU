@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AICU QUIZ 앱 v3.8.2</title>
+    <title>AICU QUIZ 앱 v3.8.4</title>
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -30,36 +30,47 @@
     <!-- 기본 컨테이너 -->
     <div id="app" class="container mx-auto px-4 py-8">
         <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">
-            AICU QUIZ 앱 v3.8.2
+            AICU QUIZ 앱 v3.8.4
         </h1>
         
         <!-- 홈 화면 (모듈 3.1) -->
         <div id="home-screen" class="bg-white rounded-lg shadow-md p-8">
-            <!-- 헤더 정보 -->
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h2 class="text-2xl font-semibold text-gray-800">학습 모드 선택</h2>
-                    <span class="text-sm text-gray-600" id="current-mode">모드 선택</span>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <div class="text-sm text-gray-600">
-                        <span id="user-info">사용자: 조대표님</span> | 
-                        <span id="exam-dday">D-0일</span> | 
-                        <span id="current-time"></span>
+            <!-- 첫 번째 박스 - D-day 카운터와 명언 -->
+            <div class="bg-white rounded-lg shadow-lg p-8 mb-6">
+                <!-- 상단 정보 -->
+                <div class="flex justify-between items-start mb-6">
+                    <!-- 좌측상단: 사용자명과 시험명 -->
+                    <div class="text-left">
+                        <div class="text-lg font-semibold text-gray-800" id="user-name-display">사용자: 조대표님</div>
+                        <div class="text-sm text-gray-600">시험명: ACIU</div>
                     </div>
-                    <button onclick="openUserSettings()" class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm">
-                        ⚙️ 설정
-                    </button>
+                    
+                    <!-- 우측상단: 시험일 -->
+                    <div class="text-right">
+                        <div class="text-sm text-gray-600">시험일</div>
+                        <div class="text-lg font-semibold text-gray-800" id="exam-date-display">2025년 12월 15일</div>
+                    </div>
                 </div>
-            </div>
-
-            <!-- 메인 대시보드 -->
-            <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                
+                <!-- D-day 카운터 -->
+                <div class="text-center mb-6">
+                    <div class="text-6xl font-bold text-blue-600 mb-2" id="d-day-display">D-138일</div>
+                    <div class="text-sm text-gray-600">시험까지 남은 일수</div>
+                </div>
+                
+                <!-- 오늘의 명언 -->
                 <div class="text-center">
-                    <p class="text-lg text-gray-700 italic" id="quote-of-day">
+                    <p class="text-3xl text-gray-700 italic font-medium" id="quote-of-day">
                         "꾸준함이 최고의 재능입니다."
                     </p>
                 </div>
+            </div>
+
+            <!-- 설정 버튼 -->
+            <div class="flex justify-end mb-4">
+                <button onclick="openUserSettings()" class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded text-sm">
+                    ⚙️ 설정
+                </button>
             </div>
 
             <!-- 보유 문제수 현황 -->
@@ -2403,8 +2414,10 @@
         function selectLearningMode(mode) {
             console.log(`=== 학습 모드 선택: ${mode} ===`);
             
-            // 현재 모드 업데이트
-            document.getElementById('current-mode').textContent = getModeDisplayName(mode);
+            // 현재 모드 업데이트 (에러 처리 추가)
+            if (document.getElementById('current-mode')) {
+                document.getElementById('current-mode').textContent = getModeDisplayName(mode);
+            }
             
             // 홈 화면 숨기기
             document.getElementById('home-screen').classList.add('hidden');
@@ -2418,7 +2431,9 @@
                 // 아직 구현되지 않은 모드들
                 alert(`${getModeDisplayName(mode)} 모드가 준비 중입니다.`);
                 document.getElementById('home-screen').classList.remove('hidden');
-                document.getElementById('current-mode').textContent = '모드 선택';
+                if (document.getElementById('current-mode')) {
+                    document.getElementById('current-mode').textContent = '모드 선택';
+                }
             }
             
             // 상태 업데이트
@@ -2450,8 +2465,10 @@
             // 홈 화면 표시
             document.getElementById('home-screen').classList.remove('hidden');
             
-            // 현재 모드 초기화
-            document.getElementById('current-mode').textContent = '모드 선택';
+            // 현재 모드 초기화 (에러 처리 추가)
+            if (document.getElementById('current-mode')) {
+                document.getElementById('current-mode').textContent = '모드 선택';
+            }
             
             // 상태 업데이트
             document.getElementById('status').textContent = '홈 화면으로 돌아왔습니다';
@@ -2573,15 +2590,108 @@
             return null;
         }
         
+        // 사용자 설정 모달 열기
+        function openUserSettings() {
+            console.log('=== 사용자 설정 모달 열기 ===');
+            
+            // 저장된 사용자 정보 로드
+            loadUserSettings();
+            
+            // 모달 표시
+            document.getElementById('user-settings-modal').classList.remove('hidden');
+            
+            console.log('사용자 설정 모달이 열렸습니다');
+        }
+        
+        // 사용자 설정 모달 닫기
+        function closeUserSettings() {
+            console.log('=== 사용자 설정 모달 닫기 ===');
+            
+            // 모달 숨기기
+            document.getElementById('user-settings-modal').classList.add('hidden');
+            
+            console.log('사용자 설정 모달이 닫혔습니다');
+        }
+        
+        // 사용자 설정 저장
+        function saveUserSettings() {
+            console.log('=== 사용자 설정 저장 ===');
+            
+            const form = document.getElementById('user-settings-form');
+            const formData = new FormData(form);
+            
+            // 필수 필드 검증
+            const userName = formData.get('userName');
+            const userPhone = formData.get('userPhone');
+            const examDate = formData.get('examDate');
+            
+            if (!userName || !userPhone || !examDate) {
+                alert('모든 필드를 입력해주세요.');
+                return;
+            }
+            
+            // 전화번호 형식 검증
+            const phoneRegex = /^010-\d{4}-\d{4}$/;
+            if (!phoneRegex.test(userPhone)) {
+                alert('전화번호 형식이 올바르지 않습니다. (예: 010-1234-5678)');
+                return;
+            }
+            
+            // 사용자 설정 객체 생성
+            const userSettings = {
+                userName: userName,
+                userPhone: userPhone,
+                examSubject: 'ACIU',
+                examDate: examDate
+            };
+            
+            // 로컬 스토리지에 저장
+            localStorage.setItem('userSettings', JSON.stringify(userSettings));
+            
+            console.log('사용자 설정 저장 완료:', userSettings);
+            
+            // 대문 정보 업데이트
+            updateUserInfo(userSettings);
+            updateDDay(examDate);
+            
+            // 모달 닫기
+            closeUserSettings();
+            
+            alert('설정이 저장되었습니다.');
+        }
+        
+        // 저장된 사용자 설정 로드
+        function loadUserSettings() {
+            console.log('=== 저장된 사용자 설정 로드 ===');
+            
+            const savedSettings = localStorage.getItem('userSettings');
+            if (savedSettings) {
+                const userSettings = JSON.parse(savedSettings);
+                
+                // 폼 필드에 값 설정
+                document.getElementById('user-name').value = userSettings.userName || '';
+                document.getElementById('user-phone').value = userSettings.userPhone || '';
+                document.getElementById('exam-date').value = userSettings.examDate || '';
+                
+                console.log('사용자 설정 로드 완료:', userSettings);
+                
+                // 대문 정보 업데이트
+                updateUserInfo(userSettings);
+                updateDDay(userSettings.examDate);
+            } else {
+                console.log('저장된 사용자 설정 없음');
+            }
+        }
+        
         // 대문 사용자 정보 업데이트
         function updateUserInfo(userSettings) {
             console.log('=== 대문 사용자 정보 업데이트 ===');
             
             if (userSettings && userSettings.userName) {
-                document.getElementById('user-info').textContent = `사용자: ${userSettings.userName}`;
+                document.getElementById('user-name-display').textContent = `사용자: ${userSettings.userName}`;
                 console.log('사용자 정보 업데이트 완료:', userSettings.userName);
             } else {
-                document.getElementById('user-info').textContent = '사용자: 조대표님';
+                document.getElementById('user-name-display').textContent = '사용자: 조대표님';
                 console.log('기본 사용자 정보 사용');
             }
         }
@@ -2591,7 +2701,8 @@
             console.log('=== D-day 계산 및 업데이트 ===');
             
             if (!examDate) {
-                document.getElementById('exam-dday').textContent = 'D-0일';
+                document.getElementById('d-day-display').textContent = 'D-0일';
+                document.getElementById('exam-date-display').textContent = '날짜 미설정';
                 return;
             }
             
@@ -2617,20 +2728,30 @@
                 ddayText = `D+${Math.abs(daysDiff)}일`;
             }
             
-            document.getElementById('exam-dday').textContent = ddayText;
+            // D-day 표시 업데이트
+            document.getElementById('d-day-display').textContent = ddayText;
+            
+            // 시험일 표시 업데이트
+            const examDateFormatted = new Date(examDate).toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            document.getElementById('exam-date-display').textContent = examDateFormatted;
+            
             console.log(`D-day 업데이트: ${ddayText} (${examDate})`);
             
             // D-day 색상 변경 (긴급도에 따라)
-            const ddayElement = document.getElementById('exam-dday');
+            const ddayElement = document.getElementById('d-day-display');
             if (daysDiff <= 7) {
                 // 7일 이내: 빨간색 (긴급)
-                ddayElement.className = 'text-red-600 font-bold';
+                ddayElement.className = 'text-6xl font-bold text-red-600 mb-2';
             } else if (daysDiff <= 30) {
                 // 30일 이내: 주황색 (주의)
-                ddayElement.className = 'text-orange-600 font-bold';
+                ddayElement.className = 'text-6xl font-bold text-orange-600 mb-2';
             } else {
                 // 30일 이상: 기본 색상
-                ddayElement.className = 'text-gray-600';
+                ddayElement.className = 'text-6xl font-bold text-blue-600 mb-2';
             }
         }
         
@@ -2647,7 +2768,7 @@
         
         // 페이지 로드 시 초기화
         window.onload = function() {
-            console.log('=== AICU QUIZ 앱 v3.8.2 초기화 ===');
+            console.log('=== AICU QUIZ 앱 v3.8.4 초기화 ===');
             
             // 현재 시간 업데이트
             updateCurrentTime();
@@ -2668,5 +2789,36 @@
             console.log('=== 앱 초기화 완료 ===');
         };
     </script>
+    
+    <!-- 사용자 설정 모달 -->
+    <div id="user-settings-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 class="text-lg font-semibold mb-4">사용자 설정</h3>
+            <form id="user-settings-form">
+                <div class="space-y-4">
+                    <div>
+                        <label for="user-name" class="block text-sm font-medium text-gray-700 mb-2">사용자 이름</label>
+                        <input type="text" id="user-name" name="userName" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label for="user-phone" class="block text-sm font-medium text-gray-700 mb-2">휴대폰 번호</label>
+                        <input type="tel" id="user-phone" name="userPhone" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="010-1234-5678">
+                    </div>
+                    <div>
+                        <label for="exam-subject" class="block text-sm font-medium text-gray-700 mb-2">응시 과목</label>
+                        <input type="text" id="exam-subject" name="examSubject" value="ACIU" readonly class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100">
+                    </div>
+                    <div>
+                        <label for="exam-date" class="block text-sm font-medium text-gray-700 mb-2">응시일</label>
+                        <input type="date" id="exam-date" name="examDate" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                <div class="flex space-x-3 mt-6">
+                    <button type="submit" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md">저장</button>
+                    <button type="button" onclick="closeUserSettings()" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-md">취소</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 </html>
